@@ -174,6 +174,26 @@ function loadTheme() {
 function saveTheme(th) {
   try { localStorage.setItem("trumpet-theme", th); } catch {}
 }
+function loadCats() {
+  try { const r = localStorage.getItem("trumpet-cats"); return r ? JSON.parse(r) : null; }
+  catch { return null; }
+}
+function saveCats(d) {
+  try { localStorage.setItem("trumpet-cats", JSON.stringify(d)); } catch {}
+}
+function loadDaily() {
+  try {
+    const r = localStorage.getItem("trumpet-daily");
+    if (!r) return null;
+    const d = JSON.parse(r);
+    const tk = todayK();
+    if (d.date !== tk) return null; // stale — different day
+    return d;
+  } catch { return null; }
+}
+function saveDaily(ckd, nts) {
+  try { localStorage.setItem("trumpet-daily", JSON.stringify({ date: todayK(), ckd, nts })); } catch {}
+}
 function getSystemTheme() {
   if (typeof window !== "undefined" && window.matchMedia) {
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -552,9 +572,9 @@ export default function App() {
   const tk=todayK(),now=new Date(),ds=now.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
   const [theme,setTheme]=useState(getSystemTheme);
   const [themeLoaded,setThemeLoaded]=useState(false);
-  const [cats,setCats]=useState(DEFAULT_CATEGORIES);
-  const [ckd,setCkd]=useState({});
-  const [nts,setNts]=useState({});
+  const [cats,setCats]=useState(()=>loadCats()||DEFAULT_CATEGORIES);
+  const [ckd,setCkd]=useState(()=>loadDaily()?.ckd||{});
+  const [nts,setNts]=useState(()=>loadDaily()?.nts||{});
   const [sd,setSd]=useState(tk);
   const [edit,setEdit]=useState(false);
   const [addCO,setAddCO]=useState(false);
@@ -581,6 +601,11 @@ export default function App() {
 
   useEffect(()=>{const d=loadStreak();setStrk(d);setSLoad(true);},[]);
   useEffect(()=>{if(sd!==tk){setCkd({});setNts({});setSd(tk);}},[tk,sd]);
+
+  // Persist categories on change
+  useEffect(()=>{saveCats(cats);},[cats]);
+  // Persist daily check-offs and notes on change
+  useEffect(()=>{saveDaily(ckd,nts);},[ckd,nts]);
 
   const all=cats.flatMap(c=>c.items);
   const dc=all.filter(i=>ckd[i.id]).length,tc2=all.length;
