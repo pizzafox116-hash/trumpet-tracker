@@ -9,7 +9,10 @@
       "Bash(npm install -D vite-plugin-pwa)",
       "Bash(npm install sharp --save-optional)",
       "Bash(node gen-icons.mjs)",
-      "Bash(npm uninstall sharp)"
+      "Bash(npm uninstall sharp)",
+      "Bash(git pull --rebase origin main)",
+      "Bash(git stash)",
+      "Bash(git stash pop)"
     ]
   }
 }
